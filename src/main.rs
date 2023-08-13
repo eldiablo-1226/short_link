@@ -1,7 +1,6 @@
 use actix_web::*;
 use actix_web::middleware::Logger;
 use actix_cors::Cors;
-use actix_web::http::header;
 
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use dotenv::dotenv;
@@ -43,21 +42,18 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://localhost:3000")
-            .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"])
-            .allowed_headers(vec![
-                header::CONTENT_TYPE,
-                header::AUTHORIZATION,
-                header::ACCEPT,
-            ])
+            .allow_any_origin()
+            .allow_any_method()
+            .allow_any_header()
             .supports_credentials();
+
         App::new()
             .app_data(web::Data::new(AppState { db: pool.clone() }))
             .configure(handlers::config)
             .wrap(cors)
             .wrap(Logger::default())
     })
-    .bind(("127.0.0.1", 8000))?
+    .bind(("127.0.0.1", 8080))?
     .run()
     .await
 }
