@@ -11,6 +11,7 @@ mod repository;
 
 pub struct AppState {
     db: PgPool,
+    domain: String
 }
 
 #[actix_web::main]
@@ -23,6 +24,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let domain = std::env::var("DOMAIN").expect("DOMAIN must be set");
     let pool = match PgPoolOptions::new()
         .max_connections(10)
         .connect(&database_url)
@@ -48,7 +50,7 @@ async fn main() -> std::io::Result<()> {
             .supports_credentials();
 
         App::new()
-            .app_data(web::Data::new(AppState { db: pool.clone() }))
+            .app_data(web::Data::new(AppState { db: pool.clone(), domain: domain.clone() }))
             .configure(handlers::config)
             .wrap(cors)
             .wrap(Logger::default())

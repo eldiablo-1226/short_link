@@ -1,5 +1,6 @@
 use actix_web::*;
 use actix_web::web::Redirect;
+use uuid::Uuid;
 
 use crate::models::*;
 use crate::AppState;
@@ -11,7 +12,7 @@ async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> impl Re
 
     match query_result {
         Some(c) => Redirect::to(c.original_url),
-        None => Redirect::to("https://localhost:8080/notfound.")
+        None => Redirect::to(format!("{:?}/notfound/", data.domain))
     }
 }
 
@@ -22,17 +23,17 @@ async fn create_short_link(body: web::Json<InserShortLink>, data: web::Data<AppS
     let code = match query_result {
         Some(c) => c.code,
         None => {
-            let new_code = uuid::Uuid::new_v4().to_string();
+            let new_code = Uuid::new_v4().simple().encode_lower(&mut Uuid::encode_buffer()).to_string();
             ShortLinkRepository::insert_short_link(&crate::repository::InserShortLink { code: new_code.clone(), url: body.url.clone(), tag: body.tag.clone() }, &data.db).await;
             new_code
         }
     };
 
-    web::Json(InserShortLinkResult{ url: format!("https://localhost:8080/{code}") })
+    web::Json(InserShortLinkResult{ url: format!("{:}/{:}", data.domain, code) })
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let scope = web::scope("/api")
+    let scope = web::scope("")
         .service(redirect)
         .service(create_short_link);
 
