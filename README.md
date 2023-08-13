@@ -10,4 +10,4 @@ This is a simple short link service built with Rust, utilizing the Actix-Web fra
 ## 🙆🏻‍♂️ Author - _Sayfiev Shakhzod_
 
 - __Instagram__:  _[s_shaxzod_1226](https://www.instagram.com/s_shaxzod_1226/)_
-- __Telegram__: _[@Diablo26](https://t.me/Diablo26)_
+- __Telegram__: _[@Diablo26](https://t.me/eldiablo26)_
