@@ -12,7 +12,7 @@ async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> impl Re
 
     match query_result {
         Some(c) => Redirect::to(c.original_url),
-        None => Redirect::to(format!("{:?}/notfound/", data.domain))
+        None => Redirect::to(format!("{:}/notfound/", data.domain))
     }
 }
 
