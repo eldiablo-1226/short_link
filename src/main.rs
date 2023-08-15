@@ -26,7 +26,6 @@ async fn main() -> std::io::Result<()> {
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let domain = std::env::var("DOMAIN").expect("DOMAIN must be set");
     let pool = match PgPoolOptions::new()
-        .max_connections(10)
         .connect(&database_url)
         .await
     {
