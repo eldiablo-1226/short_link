@@ -33,7 +33,7 @@ impl ShortLinkRepository {
             .expect("Error get short-url by code");
     }
 
-    pub async fn get_url_by_url(url: &String, conn: &PgPool) -> Option<GetByUrlResult> 
+    pub async fn get_code_by_url(url: &String, conn: &PgPool) -> Option<GetByUrlResult> 
     {
         return sqlx::query_as::<_, GetByUrlResult>(r#"select su.code from short_urls as su where su.original_url = $1 limit 1"#)
             .bind(url)

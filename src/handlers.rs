@@ -7,7 +7,7 @@ use crate::repository::ShortLinkRepository;
 use crate::AppState;
 
 #[get("/{code}")]
-async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> impl Responder 
+async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> Redirect
 {
     let query_result = ShortLinkRepository::get_url_by_code(&code, &data.db).await;
 
@@ -22,9 +22,9 @@ async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> impl Re
 async fn create_short_link(
     body: web::Json<InserShortLink>,
     data: web::Data<AppState>,
-) -> impl Responder 
+) -> web::Json<InserShortLinkResult>
 {
-    let query_result = ShortLinkRepository::get_url_by_url(&body.url, &data.db).await;
+    let query_result = ShortLinkRepository::get_code_by_url(&body.url, &data.db).await;
 
     let code = match query_result 
     {
