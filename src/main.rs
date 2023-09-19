@@ -8,7 +8,9 @@ use dotenv::dotenv;
 mod handlers;
 mod models;
 mod repository;
+mod auth;
 
+#[derive(Clone)]
 pub struct AppState {
     db: PgPool,
     domain: String
@@ -23,8 +25,8 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
 
+    // Init PG
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let domain = std::env::var("DOMAIN").expect("DOMAIN must be set");
     let pool = match PgPoolOptions::new()
         .connect(&database_url)
         .await
@@ -39,6 +41,11 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
+    let state = AppState{
+        db: pool,
+        domain: std::env::var("DOMAIN").expect("DOMAIN must be set")
+    };
+
     println!("🚀 Server started successfully");
 
     HttpServer::new(move || {
@@ -49,10 +56,10 @@ async fn main() -> std::io::Result<()> {
             .supports_credentials();
 
         App::new()
-            .app_data(web::Data::new(AppState { db: pool.clone(), domain: domain.clone() }))
-            .configure(handlers::config)
-            .wrap(cors)
+            .app_data(web::Data::new(state.clone()))
             .wrap(Logger::default())
+            .wrap(cors)
+            .configure(handlers::config)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

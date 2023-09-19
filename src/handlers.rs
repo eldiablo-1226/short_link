@@ -1,10 +1,12 @@
 use actix_web::web::Redirect;
 use actix_web::*;
+use actix_web_httpauth::middleware::HttpAuthentication;
 use uuid::Uuid;
 
 use crate::models::*;
 use crate::repository::ShortLinkRepository;
 use crate::AppState;
+use crate::auth::basic_auth_validator;
 
 #[get("/{code}")]
 async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> Redirect
@@ -47,9 +49,11 @@ async fn create_short_link(
 
 pub fn config(conf: &mut web::ServiceConfig) 
 {
-    let scope = web::scope("")
-        .service(redirect)
+    let auth = HttpAuthentication::basic(basic_auth_validator);
+
+    let auth_scope = web::scope("")
+        .wrap(auth)
         .service(create_short_link);
 
-    conf.service(scope);
+    conf.service(redirect).service(auth_scope);
 }
