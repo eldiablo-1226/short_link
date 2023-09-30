@@ -1,9 +1,9 @@
 use actix_web::*;
 use actix_web::middleware::Logger;
 use actix_cors::Cors;
+use config::Config;
 
 use sqlx::postgres::{PgPool, PgPoolOptions};
-use dotenv::dotenv;
 
 mod handlers;
 mod models;
@@ -18,15 +18,17 @@ pub struct AppState {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    if std::env::var_os("RUST_LOG").is_none() {
+    let settings = Config::builder()
+        .add_source(config::File::with_name("./Settings.toml"))
+        .build()
+        .unwrap();
+
+    if settings.get_string("RUST_LOG").is_err() {
         std::env::set_var("RUST_LOG", "actix_web=info");
     }
 
-    dotenv().ok();
-    env_logger::init();
-
     // Init PG
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let database_url = settings.get_string("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool = match PgPoolOptions::new()
         .connect(&database_url)
         .await
@@ -43,8 +45,10 @@ async fn main() -> std::io::Result<()> {
 
     let state = AppState{
         db: pool,
-        domain: std::env::var("DOMAIN").expect("DOMAIN must be set")
+        domain: settings.get_string("DOMAIN").expect("DOMAIN must be set")
     };
+
+    auth::init(settings.clone());
 
     println!("🚀 Server started successfully");
 

@@ -13,7 +13,7 @@ async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> Redirec
 {
     let query_result = ShortLinkRepository::get_url_by_code(&code, &data.db).await;
 
-    match query_result 
+    match query_result
     {
         Some(c) => Redirect::to(c.original_url),
         None => Redirect::new("/", "/notfound/"),
