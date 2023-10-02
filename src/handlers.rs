@@ -11,9 +11,7 @@ use crate::auth::basic_auth_validator;
 #[get("/{code}")]
 async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> Redirect
 {
-    let query_result = ShortLinkRepository::get_url_by_code(&code, &data.db).await;
-
-    match query_result
+    match ShortLinkRepository::get_url_by_code(&code, &data.db).await
     {
         Some(c) => Redirect::to(c.original_url),
         None => Redirect::new("/", "/notfound/"),
@@ -21,14 +19,10 @@ async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> Redirec
 }
 
 #[post("/shorter")]
-async fn create_short_link(
-    body: web::Json<InserShortLink>,
-    data: web::Data<AppState>,
-) -> web::Json<InserShortLinkResult>
+async fn create_short_link(body: web::Json<InserShortLink>, data: web::Data<AppState>)
+    -> web::Json<InserShortLinkResult>
 {
-    let query_result = ShortLinkRepository::get_code_by_url(&body.url, &data.db).await;
-
-    let code = match query_result 
+    let code = match ShortLinkRepository::get_code_by_url(&body.url, &data.db).await
     {
         Some(c) => c.code,
         None =>

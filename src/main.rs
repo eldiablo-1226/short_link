@@ -17,17 +17,15 @@ pub struct AppState {
 }
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> std::io::Result<()>
+{
+    // Load settings from file
     let settings = Config::builder()
         .add_source(config::File::with_name("./Settings.toml"))
         .build()
         .unwrap();
 
-    if settings.get_string("RUST_LOG").is_err() {
-        std::env::set_var("RUST_LOG", "actix_web=info");
-    }
-
-    // Init PG
+    // Connect to PostgreSQL
     let database_url = settings.get_string("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool = match PgPoolOptions::new()
         .connect(&database_url)
@@ -43,11 +41,13 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
+    // Create state
     let state = AppState{
         db: pool,
         domain: settings.get_string("DOMAIN").expect("DOMAIN must be set")
     };
 
+    // Init Basic Auth (load login and password from settings)
     auth::init(settings.clone());
 
     println!("🚀 Server started successfully");
