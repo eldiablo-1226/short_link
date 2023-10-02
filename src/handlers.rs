@@ -1,5 +1,6 @@
 use actix_web::web::Redirect;
 use actix_web::*;
+use actix_web::http::StatusCode;
 use actix_web_httpauth::middleware::HttpAuthentication;
 use uuid::Uuid;
 
@@ -14,7 +15,7 @@ async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> Redirec
     match ShortLinkRepository::get_url_by_code(&code, &data.db).await
     {
         Some(c) => Redirect::to(c.original_url),
-        None => Redirect::new("/", "/notfound/"),
+        None => Redirect::new("/", "/notfound"),
     }
 }
 
@@ -41,6 +42,14 @@ async fn create_short_link(body: web::Json<InserShortLink>, data: web::Data<AppS
     web::Json(InserShortLinkResult{ url: format!("{:}/{:}", data.domain, code) })
 }
 
+#[get("/notfound")]
+async fn not_found_page() -> impl Responder
+{
+    HttpResponse::build(StatusCode::OK)
+        .content_type("text/html; charset=utf-8")
+        .body(include_str!("../static/404.html"))
+}
+
 pub fn config(conf: &mut web::ServiceConfig) 
 {
     let auth = HttpAuthentication::basic(basic_auth_validator);
@@ -49,5 +58,5 @@ pub fn config(conf: &mut web::ServiceConfig)
         .wrap(auth)
         .service(create_short_link);
 
-    conf.service(redirect).service(auth_scope);
+    conf.service(not_found_page).service(redirect).service(auth_scope);
 }
