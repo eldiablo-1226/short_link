@@ -17,3 +17,4 @@ actix-web-httpauth = "0.8.0"
 once_cell = "1.18.0"
 log = { version = "0.4.20", features = [] }
 config = "0.13.3"
+validator = { version = "0.16.1", features = ["derive"] }

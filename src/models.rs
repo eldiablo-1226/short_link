@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
+use validator::Validate;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Validate)]
 pub struct InserShortLink{
+    #[validate(url)]
     pub url: String,
     pub tag: Option<String>
 }

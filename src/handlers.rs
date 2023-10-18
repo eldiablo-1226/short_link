@@ -3,13 +3,14 @@ use actix_web::*;
 use actix_web::http::StatusCode;
 use actix_web_httpauth::middleware::HttpAuthentication;
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::models::*;
 use crate::repository::ShortLinkRepository;
 use crate::AppState;
 use crate::auth::basic_auth_validator;
 
-#[get("/{code}")]
+#[route("/{code}", method="GET", method="HEAD")]
 async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> Redirect
 {
     match ShortLinkRepository::get_url_by_code(&code, &data.db).await
@@ -20,9 +21,14 @@ async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> Redirec
 }
 
 #[post("/shorter")]
-async fn create_short_link(body: web::Json<InserShortLink>, data: web::Data<AppState>)
-    -> web::Json<InserShortLinkResult>
+async fn create_short_link(body: web::Json<InserShortLink>, data: web::Data<AppState>) -> impl Responder
 {
+    // Validate request
+    if let Err(err) = body.validate(){
+        return HttpResponse::BadRequest().json(err);
+    }
+
+    // Create short link if not exist
     let code = match ShortLinkRepository::get_code_by_url(&body.url, &data.db).await
     {
         Some(c) => c.code,
@@ -39,7 +45,7 @@ async fn create_short_link(body: web::Json<InserShortLink>, data: web::Data<AppS
         }
     };
 
-    web::Json(InserShortLinkResult{ url: format!("{:}/{:}", data.domain, code) })
+    HttpResponse::Ok().json(InserShortLinkResult{ url: format!("{:}/{:}", data.domain, code) })
 }
 
 #[get("/notfound")]
