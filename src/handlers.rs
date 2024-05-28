@@ -21,7 +21,7 @@ async fn redirect(code: web::Path<String>, data: web::Data<AppState>) -> Redirec
 }
 
 #[post("/shorter")]
-async fn create_short_link(body: web::Json<InserShortLink>, data: web::Data<AppState>) -> impl Responder
+async fn create_short_link(body: web::Json<InsertShortLink>, data: web::Data<AppState>) -> impl Responder
 {
     // Validate request
     if let Err(err) = body.validate(){
@@ -45,7 +45,7 @@ async fn create_short_link(body: web::Json<InserShortLink>, data: web::Data<AppS
         }
     };
 
-    HttpResponse::Ok().json(InserShortLinkResult{ url: format!("{:}/{:}", data.domain, code) })
+    HttpResponse::Ok().json(InsertShortLinkResult { url: format!("{:}/{:}", data.domain, code) })
 }
 
 #[get("/notfound")]
